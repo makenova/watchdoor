@@ -1,8 +1,18 @@
-// name the pins
+/*
+ Debounce code from http://arduino.cc/en/Tutorial/Debounce
+*/
+
+// constants
 const int led = D7;
 const int sensorPin = D0;
 
-int doorState = 0;
+// keep track of the door state
+int doorState;
+int lastDoorState;
+
+// debounce variables
+long lastDebounceTime = 0;
+long debounceDelay = 50;
 
 // This routine runs only once upon reset
 void setup()
@@ -11,7 +21,9 @@ void setup()
     pinMode(sensorPin, INPUT);
     pinMode(led, OUTPUT);
     
-    doorState = digitalRead(sensorPin);;
+    // initialize variables
+    doorState = digitalRead(sensorPin);
+    lastDoorState = doorState;
 }
 
 // This routine loops forever 
@@ -19,11 +31,18 @@ void loop()
 {
     int sensorReading = digitalRead(sensorPin);
     digitalWrite(led, sensorReading);
-    
-    if (sensorReading != doorState){
-        String message = sensorReading ? "closed" : "open";
-        doorState = sensorReading;
-        Spark.publish("makenova/doorState", message);
-        delay(300);
+
+    if (sensorReading != lastDoorState){
+        lastDebounceTime = millis();
     }
+
+    if ((millis() - lastDebounceTime) > debounceDelay){
+        if (sensorReading != doorState){
+            String message = sensorReading ? "closed" : "open";
+            doorState = sensorReading;
+            Spark.publish("makenova/doorState", message);
+        }
+    }
+
+    lastDoorState = sensorReading;
 }
