@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test</title>
+</head>
+<body>
+<div id="result"></div>
+<button onclick="start()">Connect</button>
+<script type="text/javascript">
+    function start() {
+
+        document.getElementById("result").innerHTML = "Waiting for data...";
+
+        var deviceID = "SPARK_DEVICE_ID";
+        var accessToken = "SPARK_TOKEN";
+        var eventSource = new EventSource("https://api.spark.io/v1/devices/" + deviceID + "/events/?access_token=" + accessToken);
+
+        eventSource.addEventListener('open', function(e) {
+            document.getElementById("result").innerHTML = "Opened!";
+        },false);
+
+        eventSource.addEventListener('error', function(e) {
+            document.getElementById("result").innerHTML = "Errored!";
+        },false);
+
+        eventSource.addEventListener('makenova/doorState', function(e) {
+            var parsedData = JSON.parse(e.data);
+            console.log(parsedData);
+            document.getElementById("result").innerHTML = "door is : " + parsedData.data;
+        }, false);
+    }
+    </script>
+</body>
+</html>
